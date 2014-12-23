@@ -101,7 +101,7 @@ nav ul li:hover, nav ul li.active {
     text-align: center;
 }
 
-#wordCloudContainer {
+.word-cloud {
     width: 100%;
     height: 400px;
 }

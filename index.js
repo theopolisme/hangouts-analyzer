@@ -2,6 +2,7 @@
 
     var TIMESTAMP_SCALAR = Math.pow( 10, 3 ),
         PHONE_NUMBER_REGEX = /^[\+\d{1,3}\-\s]*\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
+        IS_DEV = window.location.search.indexOf( 'dev=true' ) !== -1,
         unnamedPersonCt = 0,
         hangoutsDatabase = new HangoutsDatabase();
 
@@ -34,28 +35,39 @@
     function HangoutsDatabase () {
         var db = this;
 
-        this.isReady = false;
+        this._ready = $.Deferred();
         this.store = new IDBStore( {
             storeName: 'Hangouts',
             storePrefix: 'theopolisme-',
             dbVersion: 1,
             keyPath: null,
             indexes: [],
-            onStoreReady: function () { db.isReady = true; },
+            onStoreReady: function () {
+                db._ready.resolve( true );
+            },
             onError: function ( error ) { throw error; }
         } );
     }
 
     HangoutsDatabase.prototype.put = function ( key, value ) {
-        this.store.put( key, value );
+        var db = this;
+        this._ready.then( function () {
+            db.store.put( key, value );
+        } );
     };
 
     HangoutsDatabase.prototype.get = function ( key, cb ) {
-        this.store.get( key, cb );
+        var db = this;
+        this._ready.then( function () {
+            db.store.get( key, cb );
+        } );
     };
 
     HangoutsDatabase.prototype.clear = function () {
-        this.store.clear();
+        var db = this;
+        this._ready.then( function () {
+            db.store.clear();
+        } );
     };
 
     function status ( message, type ) {
@@ -264,10 +276,27 @@
                 window.location.reload();
             }, 1000 );
         } );
+
+        // In dev mode, use previously cached conversation data if available
+        if ( IS_DEV ) {
+            hangoutsDatabase.get( 'conversationData', function ( conversationData ) {
+                if ( conversationData ) {
+                    $intro.hideModal();
+                    $( document.body ).off( 'dragenter dragleave drop' );
+                    handleData( conversationData );
+                }
+            } );
+        }
     }
 
     function handleFile ( file ) {
         loadFile( file, function ( data ) {
+
+            // If dev mode, cache conversation data so it doesn't need to be reloaded each time
+            if ( IS_DEV ) {
+                hangoutsDatabase.put( 'conversationData', data );
+            }
+
             handleData( data );
         } );
     }
@@ -609,7 +638,6 @@
                                 },
                                 point: {
                                     r: function ( d ) {
-                                        //debugger;
                                         return Math.sqrt( ( frequency[fPartMap[d.id]][d.value][d.x] / conversation.events.length ) * 25000 );
                                     },
                                     focus: {
@@ -756,7 +784,6 @@
                         }
                         messagesPerDay();
                     }
-                    stats();
 
                     function sentiment () {
                         function sentimentTime () {
@@ -820,38 +847,46 @@
                         }
                         sentimentTime();
                     }
-                    sentiment();
 
                     function content () {
-                        var words,
-                            $container = $( '#wordCloudContainer' ),
-                            $canvas = $container.find( 'canvas' ),
-                            counts = new Dict( null, function () { return 0; } ),
-                            ignore = [ 'and','the','to','a','of','for','as','i','with','it','is','on','that','this','can','in','be','has','if' ];
 
-                        $canvas[0].width = $container[0].offsetWidth;
-                        $canvas[0].height = $container[0].offsetHeight;
+                        function makeWordCloud ( $container, events ) {
+                            var words,
+                                cases = {},
+                                $canvas = $container.find( 'canvas' ),
+                                counts = new Dict( null, function () { return 0; } ),
+                                stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/,
+                                ignore = [ 'and','the','to','a','of','for','as','i','with','it','is','on','that','this','can','in','be','has','if' ];
 
-                        words = conversation.events
-                            .map( function ( e ) { return e.message.split( /[^\w-']+/ ) } )
-                            .flatten()
-                        
-                        words.forEach( function ( word ) {
-                            if ( word && word.length > 2 && ignore.indexOf( word.toLowerCase() ) === -1 ) {
-                                counts.set( word, counts.get( word ) + 1 );
-                            }
-                        } );
+                            $canvas[0].width = $container[0].offsetWidth;
+                            $canvas[0].height = $container[0].offsetHeight;
 
-                        WordCloud( $canvas[0], {
-                            list: counts.map( function ( count, word ) { return [ word, count ]; } ),
-                            weightFactor: d3.scale.sqrt()
-                                .domain( [ 0, counts.max() ] )
-                                .range( [ 5, 100 ] ),
-                            fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-                            rotateRatio: 0.5
-                        } );
+                            words = events
+                                .map( function ( e ) {
+                                    return e.message.match( /[\'\w\-]+/g ) || [];
+                                } )
+                                .flatten();
+                            
+                            words.forEach( function ( word ) {
+                                var lowercased = word.toLowerCase();
+                                if ( word && word.length > 2 && !stopWords.test( lowercased ) ) {
+                                    cases[lowercased] = word;
+                                    counts.set( lowercased, counts.get( word ) + 1 );
+                                }
+                            } );
+
+                            WordCloud( $canvas[0], {
+                                list: counts.map( function ( count, word ) { return [ cases[word], count ]; } ),
+                                weightFactor: d3.scale.sqrt()
+                                    .domain( [ 0, counts.max() ] )
+                                    .range( [ 5, 100 ] ),
+                                fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                                rotateRatio: 0.5
+                            } );
+                        }
+
+                        makeWordCloud( $( '#wordCloud_allEvents' ), conversation.events );
                     }
-                    content();
 
                     function more () {
                         $( '#csvDownload' ).click( function () {
@@ -872,10 +907,13 @@
                                 .replace( /\s*/g, '' ) ).substring( 0, 10 ) + '_' + conversation.id.substring( 0, 5 ) + '.csv';
                         } );
                     }
+
+                    stats();
+                    sentiment();
+                    content();
                     more();
 
                     $conversation.find( 'ul.tabs' ).tabs();
-                    $( '.loading' ).fadeOut();
                 }
             };
 
@@ -883,10 +921,15 @@
             return;
         }
 
-        $( document ).scrollTop( 0 );
+        $( '.loading' ).show();
 
-        loaders[view]( data );
         this.view = view;
+
+        setTimeout( function () {
+            $( document ).scrollTop( 0 );
+            loaders[view]( data );
+            $( '.loading' ).fadeOut();
+        }, 0 );
     };
 
     setUp();
