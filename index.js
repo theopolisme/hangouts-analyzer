@@ -502,7 +502,7 @@
                 },
 
                 conversation: function ( data ) {
-                    var eventsByParticipant,
+                    var handlers, hasRun, eventsByParticipant,
                         conversation = viewer.conversations.get( { id: data.id } ),
                         $conversation = $( viewer._conversationTemplate ),
                         peopleCt = 0,
@@ -937,20 +937,53 @@
                         } );
                     }
 
-                    stats();
-                    sentiment();
-                    content();
-                    more();
+                    // Just-in-time loading to make everything zippier
 
-                    $conversation.find( 'ul.tabs' ).tabs();
+                    handlers = {
+                        stats: stats,
+                        sentiment: sentiment,
+                        emoji: emoji,
+                        conversationContent: content,
+                        more: more
+                    };
+                    hasRun = {};
+
+                    $conversation.find( 'ul.tabs' )
+                        .tabs()
+                        .on( 'click', 'a', function () {
+                            var name = this.href.split( '#' ).pop();
+
+                            if ( hasRun[name] ) {
+                                return;
+                            }
+
+                            handlers[name]();
+                            hasRun[name] = true;
+                        } );
+
+                    handlers.stats();
+                    hasRun.stats = true;
                 }
-            };
+            },
+        unloaders = {
+            conversation: function () {
+                // Abort current in-progress WordClouds
+                $( document ).find( 'canvas' ).one( 'wordclouddrawn', function () {
+                    return false;
+                } );
+            }
+        };
 
         if ( !loaders[view] ) {
             return;
         }
 
         $( '.loading' ).show();
+
+        // call the unloaders for the current view first
+        if ( unloaders[this.view] ) {
+            unloaders[this.view]();
+        }
 
         this.view = view;
 
