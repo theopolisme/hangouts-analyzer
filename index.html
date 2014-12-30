@@ -132,6 +132,7 @@
                 <ul class="tabs">
                     <li class="tab col s4"><a href="#stats">Stats</a></li>
                     <!-- FUCKED UP CURRENTLY <li class="tab col s4"><a href="#sentiment">Sentiment</a></li> -->
+                    <li class="tab col s4"><a href="#emoji">Emoji</a></li>
                     <li class="tab col s4"><a href="#conversationContent">Content</a></li>
                     <li class="tab col s4"><a href="#more">More</a></li>
                 </ul>
@@ -173,6 +174,17 @@
                 <div class="card-panel">
                     <h5>Messages per day by participant</h5>
                     <div id="messagesPerDay"></div>
+                </div>
+            </div>
+            <div id="emoji" class="col s12">
+                <div class="card-panel" id="emojiNotSupported">Your browser does not support emoji, so you will sadly be seeing a lot of empty boxes. Try another browser!</div>
+                <div class="card-panel">
+                    <h5>Number of emoji sent by participant</h5>
+                    <div id="emojiUsage"></div>
+                </div>
+                <div class="card-panel">
+                    <h5>Emoji frequency by participant</h5>
+                    <div id="emojiFrequency_byParticipant" class="row"></div>
                 </div>
             </div>
             <!-- FUCKED UP CURRENTLY <div id="sentiment" class="col s12">

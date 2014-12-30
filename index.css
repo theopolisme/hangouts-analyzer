@@ -101,6 +101,22 @@ nav ul li:hover, nav ul li.active {
     text-align: center;
 }
 
+#emojiNotSupported {
+    color: #9F6000;
+    background-color: #FEEFB3;
+}
+
+#emoji g.c3-chart-arc text {
+    font-size: 3em;
+}
+
+#emojiFrequency_byParticipant span.no-emoji {
+    height: 320px;
+    line-height: 320px;
+    font-style: italic;
+}
+}
+
 .word-cloud {
     width: 100%;
     height: 400px;

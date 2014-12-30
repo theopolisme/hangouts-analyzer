@@ -2,6 +2,14 @@
 
     var TIMESTAMP_SCALAR = Math.pow( 10, 3 ),
         PHONE_NUMBER_REGEX = /^[\+\d{1,3}\-\s]*\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
+        // EMOJI_REGEX: https://github.com/mathiasbynens/emoji-regex
+        EMOJI_REGEX = /\uD83C(?:\uDDE6\uD83C(?:\uDDEB|\uDDFD|\uDDF1|\uDDF8|\uDDE9|\uDDF4|\uDDEE|\uDDF6|\uDDEC|\uDDF7|\uDDF2|\uDDFC|\uDDE8|\uDDFA|\uDDF9|\uDDFF|\uDDEA)|\uDDE9\uD83C(?:\uDDFF|\uDDF0|\uDDEC|\uDDEF|\uDDF2|\uDDF4|\uDDEA)|\uDDE7\uD83C(?:\uDDF8|\uDDED|\uDDE9|\uDDE7|\uDDFE|\uDDEA|\uDDFF|\uDDEF|\uDDF2|\uDDF9|\uDDF4|\uDDE6|\uDDFC|\uDDFB|\uDDF7|\uDDF3|\uDDEC|\uDDEB|\uDDEE|\uDDF6|\uDDF1)|\uDDEE\uD83C(?:\uDDF4|\uDDE8|\uDDF8|\uDDF3|\uDDE9|\uDDF7|\uDDF6|\uDDEA|\uDDF2|\uDDF1|\uDDF9)|\uDDFB\uD83C(?:\uDDEC|\uDDE8|\uDDEE|\uDDFA|\uDDE6|\uDDEA|\uDDF3)|\uDDF0\uD83C(?:\uDDED|\uDDFE|\uDDF2|\uDDFF|\uDDEA|\uDDEE|\uDDFC|\uDDEC|\uDDF5|\uDDF7|\uDDF3)|\uDDE8\uD83C(?:\uDDF2|\uDDE6|\uDDFB|\uDDEB|\uDDF1|\uDDF3|\uDDFD|\uDDF5|\uDDE8|\uDDF4|\uDDEC|\uDDE9|\uDDF0|\uDDF7|\uDDEE|\uDDFA|\uDDFC|\uDDFE|\uDDFF|\uDDED)|\uDDEA\uD83C(?:\uDDE6|\uDDE8|\uDDEC|\uDDF7|\uDDEA|\uDDF9|\uDDFA|\uDDF8|\uDDED)|\uDDF9\uD83C(?:\uDDE9|\uDDEB|\uDDFC|\uDDEF|\uDDFF|\uDDED|\uDDF1|\uDDEC|\uDDF0|\uDDF4|\uDDF9|\uDDE6|\uDDF3|\uDDF7|\uDDF2|\uDDE8|\uDDFB)|\uDDED\uD83C(?:\uDDF7|\uDDF9|\uDDF2|\uDDF3|\uDDF0|\uDDFA)|\uDDF8\uD83C(?:\uDDFB|\uDDF2|\uDDF9|\uDDE6|\uDDF3|\uDDE8|\uDDF1|\uDDEC|\uDDFD|\uDDF0|\uDDEE|\uDDE7|\uDDF4|\uDDF8|\uDDED|\uDDE9|\uDDF7|\uDDEF|\uDDFF|\uDDEA|\uDDFE)|\uDDEC\uD83C(?:\uDDF6|\uDDEB|\uDDE6|\uDDF2|\uDDEA|\uDDED|\uDDEE|\uDDF7|\uDDF1|\uDDE9|\uDDF5|\uDDFA|\uDDF9|\uDDEC|\uDDF3|\uDDFC|\uDDFE|\uDDF8|\uDDE7)|\uDDEB\uD83C(?:\uDDF0|\uDDF4|\uDDEF|\uDDEE|\uDDF7|\uDDF2)|\uDDF5\uD83C(?:\uDDEB|\uDDF0|\uDDFC|\uDDF8|\uDDE6|\uDDEC|\uDDFE|\uDDEA|\uDDED|\uDDF3|\uDDF1|\uDDF9|\uDDF7|\uDDF2)|\uDDEF\uD83C(?:\uDDF2|\uDDF5|\uDDEA|\uDDF4)|\uDDFD\uD83C\uDDF0|\uDDF1\uD83C(?:\uDDE6|\uDDFB|\uDDE7|\uDDF8|\uDDF7|\uDDFE|\uDDEE|\uDDF9|\uDDFA|\uDDF0|\uDDE8)|\uDDF2\uD83C(?:\uDDF4|\uDDF0|\uDDEC|\uDDFC|\uDDFE|\uDDFB|\uDDF1|\uDDF9|\uDDED|\uDDF6|\uDDF7|\uDDFA|\uDDFD|\uDDE9|\uDDE8|\uDDF3|\uDDEA|\uDDF8|\uDDE6|\uDDFF|\uDDF2|\uDDF5|\uDDEB)|\uDDFE\uD83C(?:\uDDF9|\uDDEA)|\uDDF3\uD83C(?:\uDDE6|\uDDF7|\uDDF5|\uDDF1|\uDDE8|\uDDFF|\uDDEE|\uDDEA|\uDDEC|\uDDFA|\uDDEB|\uDDF4)|\uDDF4\uD83C\uDDF2|\uDDF6\uD83C\uDDE6|\uDDF7\uD83C(?:\uDDEA|\uDDF4|\uDDFA|\uDDFC|\uDDF8)|\uDDFC\uD83C(?:\uDDF8|\uDDEB)|\uDDFF\uD83C(?:\uDDE6|\uDDF2|\uDDFC)|\uDDFA\uD83C(?:\uDDEC|\uDDE6|\uDDF8|\uDDFE|\uDDF2|\uDDFF))|[\u231A\u231B\u23E9-\u23EC\u23F0\u23F3\u25FD\u25FE\u2614\u2615\u2648-\u2653\u267F\u2693\u26A1\u26AA\u26AB\u26BD\u26BE\u26C4\u26C5\u26CE\u26D4\u26EA\u26F2\u26F3\u26F5\u26F7-\u26FA\u26FD\u2705\u270A\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u2795-\u2797\u27B0\u27BF\u2B1B\u2B1C\u2B50\u2B55]|\uD83C[\uDC04\uDCCF\uDD8E\uDD91-\uDD9A\uDE01\uDE1A\uDE2F\uDE32-\uDE36\uDE38-\uDE3A\uDE50\uDE51\uDF00-\uDF20\uDF30-\uDF35\uDF37-\uDF7C\uDF80-\uDF93\uDFA0-\uDFCA\uDFE0-\uDFF0\uDFF4]|\uD83D[\uDC00-\uDC3E\uDC40\uDC42-\uDCFC\uDD00-\uDD3D\uDD50-\uDD67\uDD95\uDD96\uDDFB-\uDE42\uDE45-\uDE4F\uDE80-\uDEC5\uDECC\uDEEB\uDEEC]/g,
+        // ASCII_REGEX, ASCII_LIST, converCodePointToCharacter: https://github.com/Ranks/emojione
+        ASCII_REGEX = /(\<3|&lt;3|\<\/3|&lt;\/3|\:'\)|\:'\-\)|\:D|\:\-D|\=D|\:\)|\:\-\)|\=\]|\=\)|\:\]|'\:\)|'\:\-\)|'\=\)|'\:D|'\:\-D|'\=D|\>\:\)|&gt;\:\)|\>;\)|&gt;;\)|\>\:\-\)|&gt;\:\-\)|\>\=\)|&gt;\=\)|;\)|;\-\)|\*\-\)|\*\)|;\-\]|;\]|;D|;\^\)|'\:\(|'\:\-\(|'\=\(|\:\*|\:\-\*|\=\*|\:\^\*|\>\:P|&gt;\:P|X\-P|x\-p|\>\:\[|&gt;\:\[|\:\-\(|\:\(|\:\-\[|\:\[|\=\(|\>\:\(|&gt;\:\(|\>\:\-\(|&gt;\:\-\(|\:@|\:'\(|\:'\-\(|;\(|;\-\(|\>\.\<|&gt;\.&lt;|\:\$|\=\$|#\-\)|#\)|%\-\)|%\)|X\)|X\-\)|\*\\0\/\*|\\0\/|\*\\O\/\*|\\O\/|O\:\-\)|0\:\-3|0\:3|0\:\-\)|0\:\)|0;\^\)|O\:\-\)|O\:\)|O;\-\)|O\=\)|0;\-\)|O\:\-3|O\:3|B\-\)|B\)|8\)|8\-\)|B\-D|8\-D|\-_\-|\-__\-|\-___\-|\>\:\\|&gt;\:\\|\>\:\/|&gt;\:\/|\:\-\/|\:\-\.|\:\/|\:\\|\=\/|\=\\|\:L|\=L|\:P|\:\-P|\=P|\:\-p|\:p|\=p|\:\-Þ|\:\-&THORN;|\:Þ|\:&THORN;|\:þ|\:&thorn;|\:\-þ|\:\-&thorn;|\:\-b|\:b|d\:|\:\-O|\:O|\:\-o|\:o|O_O|\>\:O|&gt;\:O|\:\-X|\:X|\:\-#|\:#|\=X|\=x|\:x|\:\-x|\=#)/g,
+        ASCII_LIST = {"<3":"2764","</3":"1f494",":')":"1f602",":'-)":"1f602",":D":"1f603",":-D":"1f603","=D":"1f603",":)":"1f604",":-)":"1f604","=]":"1f604","=)":"1f604",":]":"1f604","':)":"1f605","':-)":"1f605","'=)":"1f605","':D":"1f605","':-D":"1f605","'=D":"1f605",">:)":"1f606",">;)":"1f606",">:-)":"1f606",">=)":"1f606",";)":"1f609",";-)":"1f609","*-)":"1f609","*)":"1f609",";-]":"1f609",";]":"1f609",";D":"1f609",";^)":"1f609","':(":"1f613","':-(":"1f613","'=(":"1f613",":*":"1f618",":-*":"1f618","=*":"1f618",":^*":"1f618",">:P":"1f61c","X-P":"1f61c","x-p":"1f61c",">:[":"1f61e",":-(":"1f61e",":(":"1f61e",":-[":"1f61e",":[":"1f61e","=(":"1f61e",">:(":"1f620",">:-(":"1f620",":@":"1f620",":'(":"1f622",":'-(":"1f622",";(":"1f622",";-(":"1f622",">.<":"1f623",":$":"1f633","=$":"1f633","#-)":"1f635","#)":"1f635","%-)":"1f635","%)":"1f635","X)":"1f635","X-)":"1f635","*\\0/*":"1f646","\\0/":"1f646","*\\O/*":"1f646","\\O/":"1f646","O:-)":"1f607","0:-3":"1f607","0:3":"1f607","0:-)":"1f607","0:)":"1f607","0;^)":"1f607","O:)":"1f607","O;-)":"1f607","O=)":"1f607","0;-)":"1f607","O:-3":"1f607","O:3":"1f607","B-)":"1f60e","B)":"1f60e","8)":"1f60e","8-)":"1f60e","B-D":"1f60e","8-D":"1f60e","-_-":"1f611","-__-":"1f611","-___-":"1f611",">:\\":"1f615",">:/":"1f615",":-/":"1f615",":-.":"1f615",":/":"1f615",":\\":"1f615","=/":"1f615","=\\":"1f615",":L":"1f615","=L":"1f615",":P":"1f61b",":-P":"1f61b","=P":"1f61b",":-p":"1f61b",":p":"1f61b","=p":"1f61b",":-\u00de":"1f61b",":\u00de":"1f61b",":\u00fe":"1f61b",":-\u00fe":"1f61b",":-b":"1f61b",":b":"1f61b","d:":"1f61b",":-O":"1f62e",":O":"1f62e",":-o":"1f62e",":o":"1f62e",O_O:"1f62e",">:O":"1f62e",":-X":"1f636",":X":"1f636",":-#":"1f636",":#":"1f636","=X":"1f636","=x":"1f636",":x":"1f636",":-x":"1f636","=#":"1f636"},
+        converCodePointToCharacter = function(a){if(-1<a.indexOf("-")){var e=[];a=a.split("-");for(var c=0;c<a.length;c++){var b=parseInt(a[c],16);if(65536<=b&&1114111>=b)var d=Math.floor((b-65536)/1024)+55296,b=(b-65536)%1024+56320,b=String.fromCharCode(d)+String.fromCharCode(b);else b=String.fromCharCode(b);e.push(b)}return e.join("")}a=parseInt(a,16);return 65536<=a&&1114111>=a?(d=Math.floor((a-65536)/1024)+55296,String.fromCharCode(d)+String.fromCharCode((a-65536)%1024+56320)):String.fromCharCode(a)};
+        // EMOJI_SUPPORTED: https://gist.github.com/mwunsch/4710561
+        EMOJI_SUPPORTED = (function(){var a;if(document.createElement("canvas").getContext&&(a=document.createElement("canvas").getContext("2d"),"function"==typeof a.fillText))return smile=String.fromCharCode(55357)+String.fromCharCode(56835),a.textBaseline="top",a.font="32px Arial",a.fillText(smile,0,0),0!==a.getImageData(16,16,1,1).data[0]}()),
         IS_DEV = window.location.search.indexOf( 'dev=true' ) !== -1,
         unnamedPersonCt = 0,
         hangoutsDatabase = new HangoutsDatabase();
@@ -527,8 +535,8 @@
                         eventsByParticipant[e.senderId.gaiaId].push( e );
                     } );
 
-                    function pieChart ( bindto, distro ) {
-                        return c3.generate( {
+                    function pieChart ( bindto, distro, options ) {
+                        return c3.generate( $.extend( /* deep */ true, {
                             bindto: bindto,
                             data: {
                                 columns: distro,
@@ -538,6 +546,52 @@
                                 format: {
                                     value: function ( value, ratio, id, index ) {
                                         return d3.format( '.2s' )( value ) + ' (' + d3.format( '.3p' )( ratio ) + ')';
+                                    }
+                                }
+                            }
+                        }, options || {} ) );
+                    }
+
+                    function makeCountByParticipantDateChart ( bindto, yValue ) {
+                        var xs, columns, xCol, yCol, groups;
+
+                        xs = {};
+                        columns = [];
+                        for ( participant in eventsByParticipant ) {
+                            name = participantIdToName[participant];
+                            yCol = [ name ];
+                            xCol = [ name + '_x' ];
+                            
+                            groups = eventsByParticipant[participant].group( function ( e ) {
+                                var date = new Date ( e.timestamp );
+                                return date.toDateString();
+                            } );
+
+                            groups.forEach( function ( group ) {
+                                xCol.push( new Date( group[0] ) );
+                                yCol.push( yValue( group[1] ) );
+                            } );
+
+                            xs[yCol[0]] = xCol[0];
+                            columns.push( xCol );
+                            columns.push( yCol );
+                        }
+
+                        c3.generate( {
+                            bindto: bindto,
+                            data: {
+                                xs: xs,
+                                columns: columns,
+                            },
+                            point: {
+                                show: false
+                            },
+                            axis: {
+                                x: {
+                                    type: 'timeseries',
+                                    tick: {
+                                        fit: true,
+                                        format: '%Y-%m-%d'
                                     }
                                 }
                             }
@@ -746,49 +800,9 @@
                         initiatorEnderGraph();
 
                         function messagesPerDay () {
-                            var xs, columns, xCol, yCol, groups;
-
-                            xs = {};
-                            columns = [];
-                            for ( participant in eventsByParticipant ) {
-                                name = participantIdToName[participant];
-                                yCol = [ name ];
-                                xCol = [ name + '_x' ];
-                                
-                                groups = eventsByParticipant[participant].group( function ( e ) {
-                                    var date = new Date ( e.timestamp );
-                                    return date.toDateString();
-                                } );
-
-                                groups.forEach( function ( group ) {
-                                    xCol.push( new Date( group[0] ) );
-                                    yCol.push( group[1].length );
-                                } );
-
-                                xs[yCol[0]] = xCol[0];
-                                columns.push( xCol );
-                                columns.push( yCol );
-                            }
-
-                            c3.generate( {
-                                bindto: '#messagesPerDay',
-                                data: {
-                                    xs: xs,
-                                    columns: columns,
-                                },
-                                point: {
-                                    show: false
-                                },
-                                axis: {
-                                    x: {
-                                        type: 'timeseries',
-                                        tick: {
-                                            fit: true,
-                                            format: '%Y-%m-%d'
-                                        }
-                                    }
-                                }
-                            } );
+                            makeCountByParticipantDateChart( '#messagesPerDay', function ( events ) {
+                                return events.length;
+                            } )
                         }
                         messagesPerDay();
                     }
@@ -854,6 +868,87 @@
                             } );
                         }
                         sentimentTime();
+                    }
+
+                    function emoji () {
+                        $( '#emojiNotSupported' ).toggle( !EMOJI_SUPPORTED );
+
+                        function removeRepeatedEmoji ( arr ) {
+                            return arr.filter( function ( v, i ) {
+                                return i === 0 || v !== arr[i-1];
+                            } );
+                        }
+
+                        function getEmoticons ( raw ) {
+                            matched = raw.match( EMOJI_REGEX ) || [];
+
+                            // Also include ASCII emoticons converted to their unicode equivalents
+                            ( raw.match( ASCII_REGEX ) || [] ).forEach( function ( match ) {
+                                if ( ASCII_LIST[match] ) {
+                                    matched.push( converCodePointToCharacter( ASCII_LIST[match] ) );
+                                }
+                            } );
+
+                            return removeRepeatedEmoji( matched );
+                        }
+
+                        makeCountByParticipantDateChart( '#emojiUsage', function ( events ) {
+                            var raw = events.map( function ( e ) { return e.message; } ).join( ' ' );
+                            return removeRepeatedEmoji( getEmoticons( raw ) ).length;
+                        } );
+
+                        function makeEmojiFrequency () {
+                            var participant, $container, raw, matches, counts, currentEmoji, distro,
+                                getColor = d3.scale.category20();
+
+                            for ( participant in eventsByParticipant ) {
+                                id = 'emojiFrequency_' + participant,
+                                $container = $( '<div class="col s12 m6">' )
+                                    .appendTo( '#emojiFrequency_byParticipant' )
+                                    .append( $( '<h6>' ).text( participantIdToName[participant] ) ),
+                                $chart = $( '<div>' ).attr( 'id', id ).appendTo( $container );
+
+                                counts = new Dict( null, function () { return 0; } );
+                                raw = eventsByParticipant[participant]
+                                    .map( function ( e ) { return e.message; } )
+                                    .join( ' ' );
+                                matches = getEmoticons( raw );
+
+                                if ( matches.length ) {
+                                    matches.forEach( function ( matched ) {
+                                        var emoji = matched.substring( 0 ); // if multiple matched in sequence
+                                        counts.set( emoji, counts.get( emoji ) + 1 );
+                                    } );
+
+                                    distro = counts
+                                        .map( function ( count, emoji ) { return [ emoji, count ] } )
+                                        // only top 10
+                                        .sorted( function ( a, b ) { return b[1] - a[1] } )
+                                        .slice( 0, 10 );
+
+                                    pieChart( '#' + id, distro, {
+                                        data: {
+                                            // so both graphs have consistent colors!
+                                            color: function ( c, d ) { return getColor( typeof d === 'object' ? d.id : d ); }
+                                        },
+                                        pie: {
+                                            label: {
+                                                threshold: 0,
+                                                format: function ( value, ratio, id ) {
+                                                    return id;
+                                                }
+                                            }
+                                        },
+                                        legend: {
+                                            show: false
+                                        }
+                                    } );
+                                } else {
+                                    $( '#' + id ).append( $( '<span>' ).addClass( 'no-emoji' ).text( 'No emoji :(' ) );
+                                }
+                            }
+                        }
+                        makeEmojiFrequency();
                     }
 
                     function content () {
