@@ -889,8 +889,6 @@
                                 }
                             } );
 
-                            window.counts = counts;
-
                             WordCloud( $canvas[0], {
                                 list: counts.map( function ( count, word ) { return [ cases[word], count ]; } ),
                                 weightFactor: d3.scale.linear()
@@ -901,7 +899,22 @@
                             } );
                         }
 
+
+                        function makeParticipantClouds () {
+                            var participant, $container, $cloud;
+                            for ( participant in eventsByParticipant ) {
+                                $container = $( '<div class="col s12 m6">' )
+                                    .appendTo( '#wordCloud_byParticipant' )
+                                    .append( $( '<h6>' ).text( participantIdToName[participant] ) );
+                                $cloud = $( '<div class="word-cloud">' )
+                                    .appendTo( $container )
+                                    .append( '<canvas>' );
+                                makeWordCloud( $cloud, eventsByParticipant[participant] );
+                            }
+                        }
+
                         makeWordCloud( $( '#wordCloud_allEvents' ), conversation.events );
+                        makeParticipantClouds();
                     }
 
                     function more () {
