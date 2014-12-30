@@ -383,7 +383,7 @@
         } );
         viewer.router.run( 'conversations' );
 
-        if ( noNames < 2 ) {
+        if ( noNames === 0 ) {
             return;
         }
 
@@ -490,7 +490,7 @@
                                         .text( iso )
                                     ),
                                 $( '<td>' )
-                                    .text( conversation.events.length )
+                                    .text( d3.format( ',' )( conversation.events.length ) )
                             )
                         );
                     } );
@@ -584,8 +584,9 @@
                         characterDistro();
 
                         function eventSendTime () {
-                            var chart, day, hour, fParticipant, fDay, fHour, xCol, yCol, name,
+                            var chart, day, hour, fParticipant, fDay, fHour, xCol, yCol, name, scale,
                                 frequency = {}, fPartMap = {}, xs = {}, columns = [],
+                                maxFrequency = 0,
                                 DAYS = [ 'Saturday', 'Friday', 'Thursday', 'Wednesday', 'Tuesday', 'Monday', 'Sunday' ],
                                 HOURS = [ '12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am',
                                     '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm', '11pm' ];
@@ -620,6 +621,9 @@
                                 xCol = [ name + '_x' ];
                                 for ( fDay in frequency[fParticipant] ) {
                                     for ( fHour in frequency[fParticipant][fDay] ) {
+                                        if ( frequency[fParticipant][fDay][fHour] > maxFrequency ) {
+                                            maxFrequency = frequency[fParticipant][fDay][fHour];
+                                        }
                                         xCol.push( fHour );
                                         yCol.push( fDay );
                                     }
@@ -628,6 +632,10 @@
                                 columns.push( xCol );
                                 columns.push( yCol );
                             }
+
+                            scale = d3.scale.sqrt()
+                                .domain( [ 0, maxFrequency ] )
+                                .range( [ 0, 25 ] );
 
                             c3.generate( {
                                 bindto: '#eventSendTime',
@@ -638,7 +646,7 @@
                                 },
                                 point: {
                                     r: function ( d ) {
-                                        return Math.sqrt( ( frequency[fPartMap[d.id]][d.value][d.x] / conversation.events.length ) * 25000 );
+                                        return scale( frequency[fPartMap[d.id]][d.value][d.x] );
                                     },
                                     focus: {
                                         expand: {
@@ -854,12 +862,18 @@
                             var words,
                                 cases = {},
                                 $canvas = $container.find( 'canvas' ),
+                                scaleFactor = window.devicePixelRatio || 1,
                                 counts = new Dict( null, function () { return 0; } ),
-                                stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/,
-                                ignore = [ 'and','the','to','a','of','for','as','i','with','it','is','on','that','this','can','in','be','has','if' ];
+                                stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/;
 
-                            $canvas[0].width = $container[0].offsetWidth;
-                            $canvas[0].height = $container[0].offsetHeight;
+
+                            $canvas.css( {
+                                width: $container[0].offsetWidth,
+                                height: $container[0].offsetHeight
+                            } );
+
+                            $canvas[0].width = $container[0].offsetWidth * scaleFactor;
+                            $canvas[0].height = $container[0].offsetHeight * scaleFactor;
 
                             words = events
                                 .map( function ( e ) {
@@ -871,15 +885,17 @@
                                 var lowercased = word.toLowerCase();
                                 if ( word && word.length > 2 && !stopWords.test( lowercased ) ) {
                                     cases[lowercased] = word;
-                                    counts.set( lowercased, counts.get( word ) + 1 );
+                                    counts.set( lowercased, counts.get( lowercased ) + 1 );
                                 }
                             } );
 
+                            window.counts = counts;
+
                             WordCloud( $canvas[0], {
                                 list: counts.map( function ( count, word ) { return [ cases[word], count ]; } ),
-                                weightFactor: d3.scale.sqrt()
+                                weightFactor: d3.scale.linear()
                                     .domain( [ 0, counts.max() ] )
-                                    .range( [ 5, 100 ] ),
+                                    .range( [ 5 * scaleFactor, 100 * scaleFactor ] ),
                                 fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
                                 rotateRatio: 0.5
                             } );
