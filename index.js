@@ -1,7 +1,8 @@
 ( function ( $, Rlite, Please, IDBStore, sentimentAnalysis, d3, c3, WordCloud, prettySize ) {
 
-    var TIMESTAMP_SCALAR = Math.pow( 10, 3 ),
+    var HANGOUTS_TIMESTAMP_SCALAR = Math.pow( 10, 3 ),
         PHONE_NUMBER_REGEX = /^[\+\d{1,3}\-\s]*\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
+
         // EMOJI_REGEX: https://github.com/mathiasbynens/emoji-regex
         EMOJI_REGEX = /\uD83C(?:\uDDE6\uD83C(?:\uDDEB|\uDDFD|\uDDF1|\uDDF8|\uDDE9|\uDDF4|\uDDEE|\uDDF6|\uDDEC|\uDDF7|\uDDF2|\uDDFC|\uDDE8|\uDDFA|\uDDF9|\uDDFF|\uDDEA)|\uDDE9\uD83C(?:\uDDFF|\uDDF0|\uDDEC|\uDDEF|\uDDF2|\uDDF4|\uDDEA)|\uDDE7\uD83C(?:\uDDF8|\uDDED|\uDDE9|\uDDE7|\uDDFE|\uDDEA|\uDDFF|\uDDEF|\uDDF2|\uDDF9|\uDDF4|\uDDE6|\uDDFC|\uDDFB|\uDDF7|\uDDF3|\uDDEC|\uDDEB|\uDDEE|\uDDF6|\uDDF1)|\uDDEE\uD83C(?:\uDDF4|\uDDE8|\uDDF8|\uDDF3|\uDDE9|\uDDF7|\uDDF6|\uDDEA|\uDDF2|\uDDF1|\uDDF9)|\uDDFB\uD83C(?:\uDDEC|\uDDE8|\uDDEE|\uDDFA|\uDDE6|\uDDEA|\uDDF3)|\uDDF0\uD83C(?:\uDDED|\uDDFE|\uDDF2|\uDDFF|\uDDEA|\uDDEE|\uDDFC|\uDDEC|\uDDF5|\uDDF7|\uDDF3)|\uDDE8\uD83C(?:\uDDF2|\uDDE6|\uDDFB|\uDDEB|\uDDF1|\uDDF3|\uDDFD|\uDDF5|\uDDE8|\uDDF4|\uDDEC|\uDDE9|\uDDF0|\uDDF7|\uDDEE|\uDDFA|\uDDFC|\uDDFE|\uDDFF|\uDDED)|\uDDEA\uD83C(?:\uDDE6|\uDDE8|\uDDEC|\uDDF7|\uDDEA|\uDDF9|\uDDFA|\uDDF8|\uDDED)|\uDDF9\uD83C(?:\uDDE9|\uDDEB|\uDDFC|\uDDEF|\uDDFF|\uDDED|\uDDF1|\uDDEC|\uDDF0|\uDDF4|\uDDF9|\uDDE6|\uDDF3|\uDDF7|\uDDF2|\uDDE8|\uDDFB)|\uDDED\uD83C(?:\uDDF7|\uDDF9|\uDDF2|\uDDF3|\uDDF0|\uDDFA)|\uDDF8\uD83C(?:\uDDFB|\uDDF2|\uDDF9|\uDDE6|\uDDF3|\uDDE8|\uDDF1|\uDDEC|\uDDFD|\uDDF0|\uDDEE|\uDDE7|\uDDF4|\uDDF8|\uDDED|\uDDE9|\uDDF7|\uDDEF|\uDDFF|\uDDEA|\uDDFE)|\uDDEC\uD83C(?:\uDDF6|\uDDEB|\uDDE6|\uDDF2|\uDDEA|\uDDED|\uDDEE|\uDDF7|\uDDF1|\uDDE9|\uDDF5|\uDDFA|\uDDF9|\uDDEC|\uDDF3|\uDDFC|\uDDFE|\uDDF8|\uDDE7)|\uDDEB\uD83C(?:\uDDF0|\uDDF4|\uDDEF|\uDDEE|\uDDF7|\uDDF2)|\uDDF5\uD83C(?:\uDDEB|\uDDF0|\uDDFC|\uDDF8|\uDDE6|\uDDEC|\uDDFE|\uDDEA|\uDDED|\uDDF3|\uDDF1|\uDDF9|\uDDF7|\uDDF2)|\uDDEF\uD83C(?:\uDDF2|\uDDF5|\uDDEA|\uDDF4)|\uDDFD\uD83C\uDDF0|\uDDF1\uD83C(?:\uDDE6|\uDDFB|\uDDE7|\uDDF8|\uDDF7|\uDDFE|\uDDEE|\uDDF9|\uDDFA|\uDDF0|\uDDE8)|\uDDF2\uD83C(?:\uDDF4|\uDDF0|\uDDEC|\uDDFC|\uDDFE|\uDDFB|\uDDF1|\uDDF9|\uDDED|\uDDF6|\uDDF7|\uDDFA|\uDDFD|\uDDE9|\uDDE8|\uDDF3|\uDDEA|\uDDF8|\uDDE6|\uDDFF|\uDDF2|\uDDF5|\uDDEB)|\uDDFE\uD83C(?:\uDDF9|\uDDEA)|\uDDF3\uD83C(?:\uDDE6|\uDDF7|\uDDF5|\uDDF1|\uDDE8|\uDDFF|\uDDEE|\uDDEA|\uDDEC|\uDDFA|\uDDEB|\uDDF4)|\uDDF4\uD83C\uDDF2|\uDDF6\uD83C\uDDE6|\uDDF7\uD83C(?:\uDDEA|\uDDF4|\uDDFA|\uDDFC|\uDDF8)|\uDDFC\uD83C(?:\uDDF8|\uDDEB)|\uDDFF\uD83C(?:\uDDE6|\uDDF2|\uDDFC)|\uDDFA\uD83C(?:\uDDEC|\uDDE6|\uDDF8|\uDDFE|\uDDF2|\uDDFF))|[\u231A\u231B\u23E9-\u23EC\u23F0\u23F3\u25FD\u25FE\u2614\u2615\u2648-\u2653\u267F\u2693\u26A1\u26AA\u26AB\u26BD\u26BE\u26C4\u26C5\u26CE\u26D4\u26EA\u26F2\u26F3\u26F5\u26F7-\u26FA\u26FD\u2705\u270A\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u2795-\u2797\u27B0\u27BF\u2B1B\u2B1C\u2B50\u2B55]|\uD83C[\uDC04\uDCCF\uDD8E\uDD91-\uDD9A\uDE01\uDE1A\uDE2F\uDE32-\uDE36\uDE38-\uDE3A\uDE50\uDE51\uDF00-\uDF20\uDF30-\uDF35\uDF37-\uDF7C\uDF80-\uDF93\uDFA0-\uDFCA\uDFE0-\uDFF0\uDFF4]|\uD83D[\uDC00-\uDC3E\uDC40\uDC42-\uDCFC\uDD00-\uDD3D\uDD50-\uDD67\uDD95\uDD96\uDDFB-\uDE42\uDE45-\uDE4F\uDE80-\uDEC5\uDECC\uDEEB\uDEEC]/g,
         // ASCII_REGEX, ASCII_LIST, converCodePointToCharacter: https://github.com/Ranks/emojione
@@ -10,13 +11,16 @@
         converCodePointToCharacter = function(a){if(-1<a.indexOf("-")){var e=[];a=a.split("-");for(var c=0;c<a.length;c++){var b=parseInt(a[c],16);if(65536<=b&&1114111>=b)var d=Math.floor((b-65536)/1024)+55296,b=(b-65536)%1024+56320,b=String.fromCharCode(d)+String.fromCharCode(b);else b=String.fromCharCode(b);e.push(b)}return e.join("")}a=parseInt(a,16);return 65536<=a&&1114111>=a?(d=Math.floor((a-65536)/1024)+55296,String.fromCharCode(d)+String.fromCharCode((a-65536)%1024+56320)):String.fromCharCode(a)};
         // EMOJI_SUPPORTED: https://gist.github.com/mwunsch/4710561
         EMOJI_SUPPORTED = (function(){var a;if(document.createElement("canvas").getContext&&(a=document.createElement("canvas").getContext("2d"),"function"==typeof a.fillText))return smile=String.fromCharCode(55357)+String.fromCharCode(56835),a.textBaseline="top",a.font="32px Arial",a.fillText(smile,0,0),0!==a.getImageData(16,16,1,1).data[0]}()),
+        // generateUuid: http://stackoverflow.com/a/8809472
+
+        generateUuid = function(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});},
         IS_DEV = window.location.search.indexOf( 'dev=true' ) !== -1,
         unnamedPersonCt = 0,
         hangoutsDatabase = new HangoutsDatabase();
 
     function Conversation ( id, timestamp ) {
         this.id = id;
-        this.timestamp = timestamp / TIMESTAMP_SCALAR;
+        this.timestamp = timestamp;
         this.participants = new FastSet( null,
             function ( a, b ) {
                 return a.gaiaId === b.gaiaId;
@@ -28,7 +32,7 @@
 
     function Event ( id, timestamp, senderId, message, attachments ) {
         this.id = id;
-        this.timestamp = timestamp / TIMESTAMP_SCALAR;
+        this.timestamp = timestamp;
         this.senderId = senderId;
         this.message = message;
         this.attachments = attachments;
@@ -144,6 +148,56 @@
         reader.readAsText( file );        
     }
 
+    function parseConversationsFromIMessage ( raw ) {
+        var data, record, conversationsObject, conversations;
+
+        status( 'Parsing iMessage stuffs...' );
+
+        conversationsObject = {};
+        conversations = new FastSet( null,
+            function ( a, b ) {
+                return a.id === b.id;
+            }, function ( o ) {
+                return o.id;
+            } );
+
+        data = d3.tsv.parse( raw );
+        data.forEach( function ( record ) {
+            var name = record.is_from_me === '1' ? 'Me' : record.contact;
+
+            if ( !conversationsObject[record.contact] ) {
+                conversationsObject[record.contact] = new Conversation(
+                    /* id */ generateUuid(),
+                    /* timestamp */ record.date * 1000
+                );
+            }
+
+            if ( !conversationsObject[record.contact].participants.has( { gaiaId: name } ) ) {
+                conversationsObject[record.contact].participants.add(
+                    new Participant(
+                        /* name */ name,
+                        /* gaiaId */ name
+                    )
+                );
+            }
+
+            conversationsObject[record.contact].events.push(
+                new Event(
+                    /* id */ record.ROWID,
+                    /* timestamp */ record.date * 1000,
+                    /* senderId */ { gaiaId: name },
+                    /* message */ record.text
+                )
+            );
+        } );
+
+        Object.keys( conversationsObject ).forEach( function ( k ) {
+            conversations.add( conversationsObject[k] );
+        } );
+
+        return conversations;
+    }
+
     function parseConversationsFromJson ( data ) {
         var raw, totalConversations, conversations, i, j, k, l,
             conversation, conversationData, participantData, eventData,
@@ -165,7 +219,7 @@
 
             conversation = new Conversation(
                     /* id */ conversationData['conversation_id']['id'],
-                    /* timestamp */ conversationData['response_header']['current_server_time']
+                    /* timestamp */ conversationData['response_header']['current_server_time'] / HANGOUTS_TIMESTAMP_SCALAR
                 );
 
             status( 'Processing conversation (' + index + ' / ' + totalConversations + ')...' );
@@ -215,7 +269,7 @@
                 conversation.events.push(
                     new Event(
                         /* id */ eventData['event_id'],
-                        /* timestamp */ eventData['timestamp'],
+                        /* timestamp */ eventData['timestamp'] / HANGOUTS_TIMESTAMP_SCALAR,
                         /* senderId */ { gaiaId: eventData['sender_id']['gaia_id'], chatId: eventData['sender_id']['chat_id'] },
                         /* message */ messagePieces.join( ' ' ),
                         /* attachments */ attachments
@@ -299,21 +353,31 @@
 
     function handleFile ( file ) {
         loadFile( file, function ( data ) {
+            var kind;
+
+            // EXPERIMENTAL: not for public consumption
+            if ( file.name.indexOf( '.tsv' ) !== -1 ) {
+                kind = 'imessage';
+            }
 
             // If dev mode, cache conversation data so it doesn't need to be reloaded each time
-            if ( IS_DEV ) {
+            if ( IS_DEV && kind !== 'imessage' ) {
                 hangoutsDatabase.put( 'conversationData', data );
             }
 
-            handleData( data );
+            handleData( data, kind );
         } );
     }
 
-    function handleData ( data ) {
+    function handleData ( data, kind ) {
         var conversations, viewer;
 
         try {
-            conversations = parseConversationsFromJson( data );
+            if ( kind === 'imessage' ) {
+                conversations = parseConversationsFromIMessage( data );
+            } else {
+                conversations = parseConversationsFromJson( data );
+            }
             status( 'Conversations parsed successfully!' );
         } catch ( e ) {
             status( 'Error reading file: ' + e.message, 'e' );
@@ -902,7 +966,7 @@
                                 getColor = d3.scale.category20();
 
                             for ( participant in eventsByParticipant ) {
-                                id = 'emojiFrequency_' + participant,
+                                id = 'emojiFrequency_' + generateUuid(),
                                 $container = $( '<div class="col s12 m6">' )
                                     .appendTo( '#emojiFrequency_byParticipant' )
                                     .append( $( '<h6>' ).text( participantIdToName[participant] ) ),
@@ -985,7 +1049,11 @@
                             } );
 
                             WordCloud( $canvas[0], {
-                                list: counts.map( function ( count, word ) { return [ cases[word], count ]; } ),
+                                list: counts
+                                    .map( function ( count, word ) { return [ cases[word], count ]; } )
+                                    // only top 1000 to stop it from rendering forever
+                                    .sorted( function ( a, b ) { return b[1] - a[1] } )
+                                    .slice( 0, 1000 ),
                                 weightFactor: d3.scale.linear()
                                     .domain( [ 0, counts.max() ] )
                                     .range( [ 5 * scaleFactor, 100 * scaleFactor ] ),
