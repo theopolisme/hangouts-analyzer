@@ -57,7 +57,7 @@ nav ul li:hover, nav ul li.active {
     display: none;
 }
 
-#noThanksUpload {
+.bottom-right {
     position: absolute;
     bottom: 0;
     right: 0;
