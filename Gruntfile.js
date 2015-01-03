@@ -51,6 +51,7 @@ module.exports = function ( grunt ) {
                     removeComments: true,
                     collapseWhitespace: true,
                     removeCommentsFromCDATA: true,
+                    minifyJS: true,
                     processScripts: [ 'text/x-handlebars-template' ]
                 },
                 files: {
