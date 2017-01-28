@@ -1,4 +1,4 @@
-( function ( $, Rlite, Please, IDBStore, sentimentAnalysis, d3, c3, WordCloud, prettySize ) {
+( function ( $, Rlite, Please, IDBStore, sentimentAnalysis, d3, c3, WordCloud, prettySize, download ) {
 
     var HANGOUTS_TIMESTAMP_SCALAR = Math.pow( 10, 3 ),
         PHONE_NUMBER_REGEX = /^[\+\d{1,3}\-\s]*\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/,
@@ -1092,11 +1092,12 @@
                                     } )
                                 );
 
-                            this.href = 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent( csv );
-                            this.download = ( conversation.participants
+                            var fileName = ( conversation.participants
                                 .map( function ( p ) { return p.name; } )
                                 .join( '' )
                                 .replace( /\s*/g, '' ) ).substring( 0, 10 ) + '_' + conversation.id.substring( 0, 5 ) + '.csv';
+
+                            download(csv, fileName, 'text/plain');
                         } );
                     }
 
@@ -1159,4 +1160,4 @@
 
     setUp();
 
-}( jQuery, Rlite, Please, IDBStore, sentimentAnalysis, d3, c3, WordCloud, prettySize ) );
+}( jQuery, Rlite, Please, IDBStore, sentimentAnalysis, d3, c3, WordCloud, prettySize, download ) );
