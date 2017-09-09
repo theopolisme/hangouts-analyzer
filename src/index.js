@@ -219,7 +219,7 @@
 
             conversation = new Conversation(
                     /* id */ conversationData['conversation_id']['id'],
-                    /* timestamp */ conversationData['response_header']['current_server_time'] / HANGOUTS_TIMESTAMP_SCALAR
+                    /* timestamp */ (conversationData['response_header'] ? conversationData['response_header']['current_server_time'] : conversationData['conversation_state']['active_timestamp']) / HANGOUTS_TIMESTAMP_SCALAR
                 );
 
             status( 'Processing conversation (' + index + ' / ' + totalConversations + ')...' );
