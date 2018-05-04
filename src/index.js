@@ -199,14 +199,15 @@
     }
 
     function parseConversationsFromJson ( data ) {
-        var raw, totalConversations, conversations, i, j, k, l,
+        var raw, rootKey, totalConversations, conversations, i, j, k, l,
             conversation, conversationData, participantData, eventData,
             content, messagePieces, attachments, segment, attachment;
         
         status( 'Parsing JSON data...' );
 
         raw = JSON.parse( data );
-        totalConversations = raw['conversation_state'].length;
+        rootKey = ['conversation_state', 'conversations'].filter(function ( k ) { return !!raw[k]; })[0];
+        totalConversations = raw[rootKey].length;
         conversations = new FastSet( null,
             function ( a, b ) {
                 return a.id === b.id;
@@ -214,18 +215,22 @@
                 return o.id;
             } );
 
-        for ( index = 0; index < raw['conversation_state'].length; index++ ) {
-            conversationData = raw['conversation_state'][index];
+        for ( index = 0; index < raw[rootKey].length; index++ ) {
+            conversationData = raw[rootKey][index];
+
+            if (conversationData['conversation']) {
+                conversationData = conversationData['conversation'];
+            }
 
             conversation = new Conversation(
                     /* id */ conversationData['conversation_id']['id'],
-                    /* timestamp */ (conversationData['response_header'] ? conversationData['response_header']['current_server_time'] : conversationData['conversation_state']['active_timestamp']) / HANGOUTS_TIMESTAMP_SCALAR
+                    /* timestamp */ (conversationData['response_header'] ? conversationData['response_header']['current_server_time'] : conversationData['conversation']['self_conversation_state']['active_timestamp']) / HANGOUTS_TIMESTAMP_SCALAR
                 );
 
             status( 'Processing conversation (' + index + ' / ' + totalConversations + ')...' );
 
-            for ( i = 0; i < conversationData['conversation_state']['conversation']['participant_data'].length; i++ ) {
-                participantData = conversationData['conversation_state']['conversation']['participant_data'][i];
+            for ( i = 0; i < conversationData['conversation']['participant_data'].length; i++ ) {
+                participantData = conversationData['conversation']['participant_data'][i];
                 conversation.participants.add(
                     new Participant(
                         /* name */ participantData['fallback_name'],
@@ -235,8 +240,8 @@
                 );
             }
 
-            for ( j = 0; j < conversationData['conversation_state']['event'].length; j++ ) {
-                eventData = conversationData['conversation_state']['event'][j];
+            for ( j = 0; j < raw[rootKey][index]['events'].length; j++ ) {
+                eventData = raw[rootKey][index]['events'][j];
 
                 // FIXME: Process other types of hangout events?
                 if ( !eventData['chat_message'] ) {
@@ -261,7 +266,7 @@
                         // Google+ photo attachment
                         attachment = content['attachment'][l];
                         if ( attachment['embed_item']['type'][0].toLowerCase() == 'plus_photo' ) {
-                            attachments.push( attachment['embed_item']['embeds.PlusPhoto.plus_photo']['url'] );
+                            attachments.push( attachment['embed_item']['plus_photo']['url'] );
                         }
                     }
                 }
@@ -381,6 +386,7 @@
             status( 'Conversations parsed successfully!' );
         } catch ( e ) {
             status( 'Error reading file: ' + e.message, 'e' );
+            console.error(e);
             return;
         }
 
